@@ -12,7 +12,17 @@ public class Solution {
         // 9.1
 //        System.out.println(tc.ladderLength("hit", "cog", Arrays.asList("hot", "dot", "dog","lot","log","cog")));
         // 9.2
-        System.out.println(tc.findLadders("hit", "cog", Arrays.asList("hot", "dot", "dog", "lot", "log", "cog")));
+//        System.out.println(tc.findLadders("hit", "cog", Arrays.asList("hot", "dot", "dog", "lot", "log", "cog")));
+
+        // 9.3
+        char[][] board = new char[][]{
+                {'X', 'X', 'X', 'X'},
+                {'X', 'O', 'O', 'X'},
+                {'X', 'X', 'O', 'X'},
+                {'X', 'O', 'X', 'X'}
+        };
+        tc.solve(board);
+        System.out.println(Arrays.deepToString(board));
     }
 
     /**
@@ -208,5 +218,96 @@ public class Solution {
         }
     }
 
+    /**
+     * Given a 2D board containing 'X' and 'O' (the letter O), capture all regions surrounded by 'X'.
+     * <p>
+     * A region is captured by flipping all 'O's into 'X's in that surrounded region.
+     * <p>
+     * For example,
+     * X X X X
+     * X O O X
+     * X X O X
+     * X O X X
+     * After running your function, the board should be:
+     * <p>
+     * X X X X
+     * X X X X
+     * X X X X
+     * X O X X
+     *
+     * @param board
+     */
+    public void solve(char[][] board) {
+        // 借用第三种标记代表和边界接壤的'O'
+        int x = board.length;
+        if (x == 0) return;
+        int y = board[0].length;
+
+        for (int i = 0; i < y; i++) {
+            board_bfs(board, 0, i);
+            board_bfs(board, x - 1, i);
+        }
+
+        for (int i = 0; i < x; i++) {
+            board_bfs(board, i, 0);
+            board_bfs(board, i, y - 1);
+        }
+
+        for (int i = 0; i < x; i++) {
+            for (int j = 0; j < y; j++) {
+                if (board[i][j] == 'O') board[i][j] = 'X';
+                else if (board[i][j] == 'B') board[i][j] = 'O';
+            }
+        }
+    }
+
+    private void board_bfs(char[][] board, int i, int j) {
+        int x = board.length, y = board[0].length;
+        if (i < 0 || i >= x || j < 0 || j >= y || board[i][j] != 'O') return;
+
+        board[i][j] = 'B';
+        Queue<Pair> queue = new LinkedList<>();
+
+        queue.add(new Pair(i, j));
+
+        while (!queue.isEmpty()) {
+            Pair vn = queue.poll();
+
+            for (int k = 0; k < 4; k++) {
+                int ix = vn.x, iy = vn.y;
+                switch (k) {
+                    case 0:
+                        ix--;
+                        break;
+                    case 1:
+                        ix++;
+                        break;
+                    case 2:
+                        iy--;
+                        break;
+                    case 3:
+                        iy++;
+                        break;
+                }
+
+                if (ix < 0 || ix >= x || iy < 0 || iy >= y || board[ix][iy] != 'O') continue;
+
+                board[ix][iy] = 'B';
+                queue.add(new Pair(ix, iy));
+            }
+
+        }
+
+    }
+
+    private class Pair {
+        int x;
+        int y;
+
+        public Pair(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
 
 }
