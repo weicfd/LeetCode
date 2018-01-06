@@ -1,38 +1,13 @@
 package leetcode.dfs;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
  * Created by tangmh on 17/12/29.
  */
 public class Solution {
-    public static void main(String[] args) {
-        Solution tc = new Solution();
-
-        // 10.1
-//        System.out.println(tc.partition("aab"));
-//        System.out.println(tc.partition("efe"));
-
-        // 10.2
-//        System.out.println(tc.uniquePaths(2,3));
-
-        // 10.3
-//        System.out.println(tc.uniquePathsWithObstacles(new int[][] {
-//                {0,0,0},
-//                {0,1,0},
-//                {0,0,0}
-//        }));
-
-        // 10.4
-//        System.out.println(tc.solveNQueens(4));
-
-        // 10.5
-//        System.out.println(tc.totalNQueens(4));
-
-        // 10.6
-        System.out.println(tc.restoreIpAddresses("25525511135"));
-    }
 
     /**
      * Given a string s, partition s such that every substring of the partition is a palindrome.
@@ -305,5 +280,313 @@ public class Solution {
         }
     }
 
-    
+    /**
+     * Given a set of candidate numbers (C) (without duplicates) and a target number (T), find all unique combinations in C where the candidate numbers sums to T.
+     * <p>
+     * The same repeated number may be chosen from C unlimited number of times.
+     * <p>
+     * Note:
+     * All numbers (including target) will be positive integers.
+     * The solution set must not contain duplicate combinations.
+     * For example, given candidate set [2, 3, 6, 7] and target 7,
+     * A solution set is:
+     * [
+     * [7],
+     * [2, 2, 3]
+     * ]
+     *
+     * @param candidates
+     * @param target
+     * @return
+     */
+    public List<List<Integer>> combinationSum(int[] candidates, int target) {
+        List<List<Integer>> res = new ArrayList<>();
+        List<Integer> solution = new ArrayList<>();
+        Arrays.sort(candidates);
+        combinationSumDFS(candidates, target, solution, res);
+        return res;
+    }
+
+    private void combinationSumDFS(int[] candidates, int target, List<Integer> solution, List<List<Integer>> res) {
+        if (target == 0 && !solution.isEmpty()) {
+            res.add(new ArrayList<>(solution));
+            return;
+        }
+        int start = solution.isEmpty() ? 0 : solution.get(solution.size() - 1);
+        for (int i = 0; i < candidates.length; i++) {
+            if (candidates[i] < start) continue;
+            else if (candidates[i] > target) break;
+            else {
+                solution.add(candidates[i]);
+                combinationSumDFS(candidates, target - candidates[i], solution, res);
+                solution.remove(solution.size() - 1);
+            }
+        }
+    }
+
+    /**
+     * Given a collection of candidate numbers (C) and a target number (T), find all unique combinations in C where the candidate numbers sums to T.
+     * <p>
+     * Each number in C may only be used once in the combination.
+     * <p>
+     * Note:
+     * All numbers (including target) will be positive integers.
+     * The solution set must not contain duplicate combinations.
+     * For example, given candidate set [10, 1, 2, 7, 6, 1, 5] and target 8,
+     * A solution set is:
+     * [
+     * [1, 7],
+     * [1, 2, 5],
+     * [2, 6],
+     * [1, 1, 6]
+     * ]
+     *
+     * @param candidates
+     * @param target
+     * @return
+     */
+    public List<List<Integer>> combinationSum2(int[] candidates, int target) {
+        List<List<Integer>> res = new ArrayList<>();
+        List<Integer> path = new ArrayList<>();
+        Arrays.sort(candidates);
+        combinationSum2DFS(candidates, target, res, path, 0);
+        return res;
+    }
+
+    private void combinationSum2DFS(int[] candidates, int target, List<List<Integer>> res, List<Integer> path, int start) {
+        if (target == 0) {
+            res.add(new ArrayList<>(path));
+        } else {
+            for (int i = start; i < candidates.length; i++) {
+                if (candidates[i] > target) break;
+                if (i != start && candidates[i] == candidates[i - 1]) continue;
+                path.add(candidates[i]);
+                combinationSum2DFS(candidates, target - candidates[i], res, path, i + 1);
+                path.remove(path.size() - 1);
+            }
+        }
+    }
+
+    /**
+     * Given n pairs of parentheses, write a function to generate all combinations of well-formed parentheses.
+     * <p>
+     * For example, given n = 3, a solution set is:
+     * <p>
+     * [
+     * "((()))",
+     * "(()())",
+     * "(())()",
+     * "()(())",
+     * "()()()"
+     * ]
+     *
+     * @param n
+     * @return
+     */
+    public List<String> generateParenthesis(int n) {
+        List<String> res = new ArrayList<>();
+        StringBuilder builder = new StringBuilder();
+        if (n > 0) generateParenthesisDFS(builder, n, 0, res);
+        return res;
+    }
+
+    private void generateParenthesisDFS(StringBuilder builder, int left, int right, List<String> res) {
+        if (left == 0 && right == 0) {
+            res.add(builder.toString());
+        } else {
+            if (left > 0) {
+                builder.append('(');
+                generateParenthesisDFS(builder, left - 1, right + 1, res);
+                builder.deleteCharAt(builder.length() - 1);
+            }
+            if (right > 0) {
+                builder.append(')');
+                generateParenthesisDFS(builder, left, right - 1, res);
+                builder.deleteCharAt(builder.length() - 1);
+            }
+        }
+    }
+
+    /**
+     * Write a program to solve a Sudoku puzzle by filling the empty cells.
+     * <p>
+     * Empty cells are indicated by the character '.'.
+     * <p>
+     * You may assume that there will be only one unique solution.
+     *
+     * @param board
+     */
+    public void solveSudoku(char[][] board) {
+        solveSudokuDFS(board, 0, 0);
+    }
+
+    private boolean solveSudokuDFS(char[][] board, int i, int j) {
+        if (i == 9) return true;
+        else if (j == 9) return solveSudokuDFS(board, i + 1, 0);
+        else {
+            if (board[i][j] == '.') {
+                for (int k = 0; k < 9; k++) {
+                    board[i][j] = (char) ('1' + k);
+                    if (checkValid(board, i, j)) {
+                        if (solveSudokuDFS(board, i, j + 1)) {
+                            return true;
+                        }
+                    }
+                }
+                board[i][j] = '.';
+                return false;
+            } else {
+                return solveSudokuDFS(board, i, j + 1);
+            }
+        }
+    }
+
+    private boolean checkValid(char[][] board, int i, int j) {
+        for (int a = 0; a < 9; a++) {
+            if (a != i && board[a][j] == board[i][j]) return false;
+        }
+        for (int b = 0; b < 9; b++) {
+            if (b != j && board[i][b] == board[i][j]) return false;
+        }
+
+        for (int k = (i / 3) * 3; k < ((i / 3) + 1) * 3; k++) {
+            for (int l = (j / 3) * 3; l < ((j / 3) + 1) * 3; l++) {
+                if (k == i && l == j) continue;
+                if (board[k][l] == board[i][j]) return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Given a 2D board and a word, find if the word exists in the grid.
+     * <p>
+     * The word can be constructed from letters of sequentially adjacent cell, where "adjacent" cells are those horizontally or vertically neighboring. The same letter cell may not be used more than once.
+     * <p>
+     * For example,
+     * Given board =
+     * <p>
+     * [
+     * ['A','B','C','E'],
+     * ['S','F','C','S'],
+     * ['A','D','E','E']
+     * ]
+     * word = "ABCCED", -> returns true,
+     * word = "SEE", -> returns true,
+     * word = "ABCB", -> returns false.
+     *
+     * @param board
+     * @param word
+     * @return
+     */
+    public boolean exist(char[][] board, String word) {
+        if (word.length() == 0) return true;
+        int m = board.length;
+        if (m == 0) return false;
+        int n = board[0].length;
+
+        boolean[][] visited = new boolean[m][n];
+
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (searchDFS(board, word, 0, visited, i, j)) return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean searchDFS(char[][] board, String word, int cur, boolean[][] visited, int i, int j) {
+        if (board[i][j] != word.charAt(cur)) return false;
+        else if (cur == word.length() - 1) return true;
+        else {
+            visited[i][j] = true;
+            for (int k = 0; k < 4; k++) {
+                int a = i, b = j;
+                switch (k) {
+                    case 0:
+                        a--;
+                        break;
+                    case 1:
+                        a++;
+                        break;
+                    case 2:
+                        b--;
+                        break;
+                    case 3:
+                        b++;
+                        break;
+                }
+                if (a < 0 || a >= board.length || b < 0 || b >= board[0].length || visited[a][b]) continue;
+                if (searchDFS(board, word, cur + 1, visited, a, b)) return true;
+            }
+            visited[i][j] = false;
+            return false;
+        }
+    }
+
+
+    public static void main(String[] args) {
+        Solution tc = new Solution();
+
+        // 10.1
+//        System.out.println(tc.partition("aab"));
+//        System.out.println(tc.partition("efe"));
+
+        // 10.2
+//        System.out.println(tc.uniquePaths(2,3));
+
+        // 10.3
+//        System.out.println(tc.uniquePathsWithObstacles(new int[][] {
+//                {0,0,0},
+//                {0,1,0},
+//                {0,0,0}
+//        }));
+
+        // 10.4
+//        System.out.println(tc.solveNQueens(4));
+
+        // 10.5
+//        System.out.println(tc.totalNQueens(4));
+
+        // 10.6
+//        System.out.println(tc.restoreIpAddresses("25525511135"));
+
+        // 10.7
+//        System.out.println(tc.combinationSum(new int[]{2,3,6,7}, 7));
+
+        // 10.8
+//        System.out.println(tc.combinationSum2(new int[]{3,1,3,5,1,1}, 8));
+
+        // 10.9
+//        System.out.println(tc.generateParenthesis(3));
+
+        // 10.10
+//        char[][] board = new char[][]{
+//                {'.','.','9','7','4','8','.','.','.'},
+//                {'7','.','.','.','.','.','.','.','.'},
+//                {'.','2','.','1','.','9','.','.','.'},
+//                {'.','.','7','.','.','.','2','4','.'},
+//                {'.','6','4','.','1','.','5','9','.'},
+//                {'.','9','8','.','.','.','3','.','.'},
+//                {'.','.','.','8','.','3','.','2','.'},
+//                {'.','.','.','.','.','.','.','.','6'},
+//                {'.','.','.','2','7','5','9','.','.'}
+//        };
+//        tc.solveSudoku(board);
+//        for (int i = 0; i < 9; i++) {
+//            System.out.println(Arrays.toString(board[i]));
+//        }
+
+        // 10.11
+        char[][] board = new char[][]{
+                {'A', 'B', 'C', 'E'},
+                {'S', 'F', 'C', 'S'},
+                {'A', 'D', 'E', 'E'}
+        };
+        System.out.println(tc.exist(board, "ABCCED"));
+        System.out.println(tc.exist(board, "SEE"));
+        System.out.println(tc.exist(board, "ABCB"));
+        System.out.println(tc.exist(new char[][]{{'a'}}, "a"));
+
+    }
 }
