@@ -1,4 +1,4 @@
-package leetcode.devide_conquer;
+package leetcode.divide_conquer;
 
 /**
  * Created by tangmh on 18/1/7.
