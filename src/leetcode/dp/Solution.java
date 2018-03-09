@@ -1,9 +1,6 @@
 package leetcode.dp;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 /**
  * Created by tangmh on 18/1/8.
@@ -460,6 +457,217 @@ public class Solution {
         return dp[m - 1][n - 1];
     }
 
+    /**
+     * Given two words word1 and word2, find the minimum number of steps required to convert word1 to word2. (each operation is counted as 1 step.)
+     * <p>
+     * You have the following 3 operations permitted on a word:
+     * <p>
+     * a) Insert a character
+     * b) Delete a character
+     * c) Replace a character
+     *
+     * @param word1
+     * @param word2
+     * @return
+     */
+    public int minDistance(String word1, String word2) {
+        // word change
+        // m(i, j) = m(i - 1, j) + 1
+        //         = m(i + 1, j) + 1
+        //         = m(i - 1, j - 1)( + 1)
+        int m = word1.length(), n = word2.length();
+        int[][] steps = new int[m + 1][n + 1];
+        for (int i = 0; i <= m; i++) {
+            for (int j = 0; j <= n; j++) {
+                if (i == 0) steps[i][j] = j;
+                else if (j == 0) steps[i][j] = i;
+                else {
+                    steps[i][j] = Math.min(steps[i - 1][j] + 1, steps[i][j - 1] + 1);
+                    if (word1.charAt(i - 1) == word2.charAt(j - 1))
+                        steps[i][j] = Math.min(steps[i][j], steps[i - 1][j - 1]);
+                    else steps[i][j] = Math.min(steps[i][j], steps[i - 1][j - 1] + 1);
+                }
+            }
+        }
+        return steps[m][n];
+    }
+
+    /**
+     * A message containing letters from A-Z is being encoded to numbers using the following mapping:
+     * <p>
+     * 'A' -> 1
+     * 'B' -> 2
+     * ...
+     * 'Z' -> 26
+     * Given an encoded message containing digits, determine the total number of ways to decode it.
+     * <p>
+     * For example,
+     * Given encoded message "12", it could be decoded as "AB" (1 2) or "L" (12).
+     * <p>
+     * The number of ways decoding "12" is 2.
+     *
+     * @param s
+     * @return
+     */
+    public int numDecodings(String s) {
+        // 类似斐波那契数列爬楼梯
+        int n = s.length();
+        if (n == 0 || s.charAt(0) == '0') return 0;
+
+        int[] book = new int[n];
+        book[0] = 1;
+        for (int i = 1; i < n; i++) {
+            if (s.charAt(i) == '0') book[i] = 0;
+            else book[i] = book[i - 1];
+            int temp = Integer.valueOf(s.substring(i - 1, i + 1));
+            if (temp > 9 && temp <= 26) {
+                if (i > 1) book[i] += book[i - 2];
+                else book[i] += 1;
+            }
+        }
+        return book[n - 1];
+    }
+
+    /**
+     * Given a string S and a string T, count the number of distinct subsequences of S which equals T.
+     * <p>
+     * A subsequence of a string is a new string which is formed from the original string by deleting some (can be none)
+     * of the characters without disturbing the relative positions of the remaining characters. (ie, "ACE" is a subsequence
+     * of "ABCDE" while "AEC" is not).
+     * <p>
+     * Here is an example:
+     * S = "rabbbit", T = "rabbit"
+     * <p>
+     * Return 3.
+     *
+     * @param s
+     * @param t
+     * @return
+     */
+    public int numDistinct(String s, String t) {
+        // 子问题: i~j = i-1~j-1 (si==tj) + i-1~j
+        int m = s.length(), n = t.length();
+        int[][] dp = new int[m + 1][n + 1];
+        for (int i = 0; i <= m; i++) {
+            dp[i][0] = 1;
+        }
+
+        for (int j = 1; j <= n; j++) {
+            for (int i = j; i <= m; i++) {
+                if (s.charAt(i - 1) == t.charAt(j - 1)) {
+                    dp[i][j] = dp[i - 1][j - 1] + dp[i - 1][j];
+                } else {
+                    dp[i][j] = dp[i - 1][j];
+                }
+            }
+        }
+
+        return dp[m][n];
+    }
+
+    /**
+     * Given a non-empty string s and a dictionary wordDict containing a list of non-empty words, determine if s can be segmented into a space-separated sequence of one or more dictionary words. You may assume the dictionary does not contain duplicate words.
+     * <p>
+     * For example, given
+     * s = "leetcode",
+     * dict = ["leet", "code"].
+     * <p>
+     * Return true because "leetcode" can be segmented as "leet code".
+     * <p>
+     * UPDATE (2017/1/4):
+     * The wordDict parameter had been changed to a list of strings (instead of a set of strings). Please reload the code definition to get the latest changes.
+     *
+     * @param s
+     * @param wordDict
+     * @return
+     */
+    public boolean wordBreak(String s, List<String> wordDict) {
+        int n = s.length();
+        if (n == 0) return true;
+        List<Integer> mark = new ArrayList<>();
+        boolean[] dp = new boolean[n];
+
+        for (int i = 0; i < n; i++) {
+            if (wordDict.contains(s.substring(0, i + 1))) {
+                mark.add(i);
+                dp[i] = true;
+            } else {
+                for (int j = 0; j < mark.size(); j++) {
+                    if (wordDict.contains(s.substring(mark.get(j) + 1, i + 1))) {
+                        mark.add(i);
+                        dp[i] = true;
+                        break;
+                    }
+                }
+            }
+        }
+        return dp[n - 1];
+    }
+
+    /**
+     * Given a non-empty string s and a dictionary wordDict containing a list of non-empty words, add spaces in s to construct a sentence where each word is a valid dictionary word. You may assume the dictionary does not contain duplicate words.
+     * <p>
+     * Return all such possible sentences.
+     * <p>
+     * For example, given
+     * s = "catsanddog",
+     * dict = ["cat", "cats", "and", "sand", "dog"].
+     * <p>
+     * A solution is ["cats and dog", "cat sand dog"].
+     * <p>
+     * UPDATE (2017/1/4):
+     * The wordDict parameter had been changed to a list of strings (instead of a set of strings). Please reload the code definition to get the latest changes.
+     *
+     * @param s
+     * @param wordDict
+     * @return
+     */
+    public List<String> wordBreak2(String s, List<String> wordDict) {
+        int n = s.length();
+        if (n == 0) return new ArrayList<>();
+        Map<Integer, List<Integer>> mark = new HashMap<>();
+        boolean[] dp = new boolean[n + 1];
+        dp[0] = true;
+
+        for (int i = 1; i <= n; i++) {
+            for (int j = i - 1; j >= 0; j--) {
+                if (dp[j] && wordDict.contains(s.substring(j, i))) {
+                    if (!mark.containsKey(i)) {
+                        mark.put(i, new ArrayList<>());
+                    }
+                    mark.get(i).add(wordDict.indexOf(s.substring(j, i)));
+                    dp[i] = true;
+                }
+            }
+        }
+
+        List<String> result = new ArrayList<>();
+        if (!dp[n]) return result;
+        List<String> path = new ArrayList<>();
+        dfsResult(result, path, n, mark, wordDict);
+
+        return result;
+    }
+
+    private void dfsResult(List<String> result, List<String> path, int loc, Map<Integer, List<Integer>> mark, List<String> wordDict) {
+        if (loc == 0) {
+            // add to result
+            StringBuilder builder = new StringBuilder();
+            for (int i = path.size() - 1; i >= 0; i--) {
+                builder.append(path.get(i));
+                if (i > 0) builder.append(" ");
+            }
+            result.add(builder.toString());
+        } else {
+            for (Integer index :
+                    mark.get(loc)) {
+                path.add(wordDict.get(index));
+                dfsResult(result, path, loc - wordDict.get(index).length(), mark, wordDict);
+                path.remove(path.size() - 1);
+            }
+        }
+    }
+
 
     public static void main(String[] args) {
         Solution tc = new Solution();
@@ -503,10 +711,25 @@ public class Solution {
 //        System.out.println(tc.isScramble("abcd", "cadb"));
 
         // 13.8
-        System.out.println(tc.minPathSum(new int[][]{
-                {1, 3, 1},
-                {1, 5, 1},
-                {4, 2, 1}
-        }));
+//        System.out.println(tc.minPathSum(new int[][]{
+//                {1, 3, 1},
+//                {1, 5, 1},
+//                {4, 2, 1}
+//        }));
+
+        // 13.9
+//        System.out.println(tc.minDistance("", "aaaaa"));
+//        System.out.println(tc.minDistance("aaa", "aaaaa"));
+//        System.out.println(tc.minDistance("bbbb", ""));
+
+        // 13.10
+//        System.out.println(tc.numDecodings("12012"));
+
+//        System.out.println(tc.numDistinct("rabbbit", "rabbit"));
+
+//        System.out.println(tc.wordBreak("leetcode", Arrays.asList("leet", "code")));
+
+        System.out.println(tc.wordBreak2("catsanddog", Arrays.asList("cat", "cats", "and", "sand", "dog")));
+        System.out.println(tc.wordBreak2("aaaaaaa", Arrays.asList("aaaa","aa")));
     }
 }
