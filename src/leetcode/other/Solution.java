@@ -1,6 +1,9 @@
 package leetcode.other;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Solution {
 
@@ -510,11 +513,167 @@ public class Solution {
      * @return
      */
     public String convert(String s, int numRows) {
-        return s;
+        if (numRows == 1) return s;
+        int n = numRows * 2 - 2;
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int i = 0; i < numRows; i++) {
+            for (int j = 0; n * j - i < s.length(); j++) {
+                if (i != 0 && i != numRows - 1 && n * j - i > 0) {
+                    stringBuilder.append(s.charAt(n * j - i));
+                }
+                if (n * j + i < s.length()) {
+                    stringBuilder.append(s.charAt(j * n + i));
+                }
+            }
+        }
+        return stringBuilder.toString();
+    }
+
+    /**
+     * Divide two integers without using multiplication, division and mod operator.
+     * <p>
+     * If it is overflow, return MAX_INT.
+     *
+     * @param dividend
+     * @param divisor
+     * @return
+     */
+    public int divide(int dividend, int divisor) {
+        long a = dividend >= 0 ? dividend : -(long) dividend;
+        long b = divisor >= 0 ? divisor : -(long) divisor;
+
+        long res = 0;
+        while (a >= b) {
+            long c = b;
+            for (int i = 0; a >= c; i++, c <<= 1) {
+                a -= c;
+                res += 1 << i;
+            }
+        }
+        boolean isNeg = ((dividend ^ divisor) >>> Integer.SIZE - 1) == 1; // 注意这里是无符号右移
+        if (res > Integer.MAX_VALUE) return isNeg ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+        else return (int) (isNeg ? (-res) : res);
+    }
+
+    /**
+     * Given an array of words and a length L, format the text such that each line has exactly L characters and is fully (left and right) justified.
+     * <p>
+     * You should pack your words in a greedy approach; that is, pack as many words as you can in each line. Pad extra spaces ' ' when necessary so that each line has exactly L characters.
+     * <p>
+     * Extra spaces between words should be distributed as evenly as possible. If the number of spaces on a line do not divide evenly between words, the empty slots on the left will be assigned more spaces than the slots on the right.
+     * <p>
+     * For the last line of text, it should be left justified and no extra space is inserted between words.
+     * <p>
+     * For example,
+     * words: ["This", "is", "an", "example", "of", "text", "justification."]
+     * L: 16.
+     * <p>
+     * Return the formatted lines as:
+     * [
+     * "This    is    an",
+     * "example  of text",
+     * "justification.  "
+     * ]
+     * Note: Each word is guaranteed not to exceed L in length.
+     *
+     * @param words
+     * @param maxWidth
+     * @return
+     */
+    public List<String> fullJustify(String[] words, int maxWidth) {
+        List<String> text = new ArrayList<>();
+        int start = 0, token_len = 0;
+        for (int i = 0; i < words.length; i++) {
+            if (token_len + words[i].length() + i - start > maxWidth) {
+                addNewLine(text, words, maxWidth - token_len, start, i);
+                start = i;
+                token_len = 0;
+            }
+            token_len += words[i].length();
+            if (i == words.length - 1 && token_len > 0)
+                addNewLine(text, words, maxWidth - token_len, start, words.length);
+        }
+        if (text.isEmpty()) {
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < maxWidth; i++) {
+                builder.append(' ');
+            }
+            text.add(builder.toString());
+        }
+        return text;
+    }
+
+    private void addNewLine(List<String> text, String[] words, int remain_offset, int start, int end) {
+        // 先考虑一种边界情况, 只有单个单词， 或是最后一行
+        StringBuilder builder = new StringBuilder();
+        if (end - start == 1 || end == words.length) {
+            for (int i = start; i < end; i++) {
+                builder.append(words[i]);
+                if (remain_offset > 0) {
+                    builder.append(' ');
+                    remain_offset--;
+                }
+            }
+            for (int i = 0; i < remain_offset; i++) {
+                builder.append(' ');
+            }
+            text.add(builder.toString());
+            return;
+        }
+        int space_offset = remain_offset / (end - start - 1);
+        remain_offset = remain_offset % (end - start - 1);
+
+        for (int i = start; i < end; i++) {
+            builder.append(words[i]);
+            if (i == end - 1) break;
+            for (int j = 0; j < space_offset; j++) {
+                builder.append(' ');
+            }
+            if (remain_offset > 0) {
+                builder.append(' ');
+                remain_offset--;
+            }
+        }
+        text.add(builder.toString());
+    }
+
+    /**
+     * Given n points on a 2D plane, find the maximum number of points that lie on the same straight line.
+     *
+     * @param points
+     * @return
+     */
+    public int maxPoints(Point[] points) {
+        if (points.length <= 2) return points.length;
+        int res = 2;
+
+        for (int i = 0; i < points.length - 2; i++) {
+            if (points.length - i < res) break;
+            int same_point = 0;
+            for (int j = i + 1; j < points.length; j++) {
+                int temp = 2;
+                int a_x = points[i].x, a_y = points[i].y, b_x = points[j].x, b_y = points[j].y;
+                if (a_x == b_x && a_y == b_y) {
+                    same_point++;
+                    continue;
+                }
+                for (int k = j + 1; k < points.length; k++) {
+                    // 表示一条直线
+                    if ((long) (points[k].y - a_y) * (long) (b_x - a_x) == (long) (points[k].x - a_x) * (long) (b_y - a_y)) {
+                        temp++;
+                    }
+                }
+                temp += same_point;
+                res = temp > res ? temp : res;
+            }
+            res = (same_point + 1) > res ? (same_point + 1) : res;
+        }
+        return res;
     }
 
     public static void main(String[] args) {
         Solution tc = new Solution();
+
 //        System.out.println(tc.reverse(123));
 
 //        System.out.println(tc.isPalindrome(1001));
@@ -548,7 +707,14 @@ public class Solution {
 //                {7,8,9}
 //        }));
 
-        System.out.println(Arrays.deepToString(tc.generateMatrix(3)));
+//        System.out.println(Arrays.deepToString(tc.generateMatrix(3)));
+
+//        System.out.println(tc.convert("PAYPALISHIRING", 2));
+
+//        System.out.println(tc.divide(-2147483648, -1));
+
+//        System.out.println(tc.fullJustify(new String[]{"What","must","be","shall","be."}, 12));
+        System.out.println(tc.maxPoints(new Point[]{new Point(1,1), new Point(1,1), new Point(1,1)}));
     }
 
 }
